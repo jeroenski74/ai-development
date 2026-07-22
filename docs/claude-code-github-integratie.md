@@ -25,8 +25,8 @@ job, zodat ze elkaar niet blokkeren en onafhankelijk van elkaar kunnen draaien.
 - Het secret **`CLAUDE_CODE_OAUTH_TOKEN`** moet zijn ingesteld op repository- of
   organisatieniveau (Settings → Secrets and variables → Actions).
 - Elke job heeft zijn eigen `permissions`-blok (`contents`, `pull-requests`,
-  `issues`, `id-token`) — bewust niet samengevoegd naar workflow-niveau, zodat per
-  job duidelijk is welke rechten nodig zijn.
+  `issues`, `id-token`, `actions`) — bewust niet samengevoegd naar workflow-niveau,
+  zodat per job duidelijk is welke rechten nodig zijn.
 
 ## De workflow
 
@@ -56,6 +56,7 @@ jobs:
       pull-requests: write
       issues: write
       id-token: write
+      actions: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -72,6 +73,7 @@ jobs:
       pull-requests: write
       issues: write
       id-token: write
+      actions: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -89,6 +91,12 @@ Toelichting bij een paar keuzes:
 - De `actions/checkout@v4`-stap met `fetch-depth: 0` haalt de volledige git-historie
   op vóórdat Claude Code start, zodat Claude toegang heeft tot de repo-inhoud en
   eerdere commits.
+- `actions: write` staat in het `permissions`-blok van beide jobs. Zodra een job een
+  `permissions:`-blok bevat, zet GitHub Actions alle niet-genoemde scopes
+  automatisch op `none` — dus ook `actions`. Zonder deze scope kan de cache-backend
+  van `claude-code-action` geen cache-entry reserveren/schrijven, wat resulteert in
+  de waarschuwing `Cache reservation failed: cache write denied: token has no
+  writable scopes`. Met `actions: write` toegevoegd verdwijnt die waarschuwing.
 - De `claude-label`-job krijgt een eigen `prompt:` mee, zodat Claude direct weet dat
   het issue moet worden opgelost zonder verdere instructie nodig te hebben.
 - De `claude-mention`-job krijgt bewust géén vaste `prompt:` mee: de instructie komt
@@ -115,3 +123,8 @@ Toelichting bij een paar keuzes:
   dan noodzakelijk voor die specifieke trigger.
 - Het secret zelf hoeft nooit in de workflow-inhoud te worden aangepast — alleen de
   naam van het secret wordt gerefereerd.
+- De waarschuwing over Node.js 20-deprecation bij `actions/checkout@v4` komt van het
+  GitHub Actions-platform zelf (de action is intern nog op Node 20 gebouwd, maar
+  wordt met een compatibiliteitslaag op Node 24-runners uitgevoerd). Dit is puur
+  informatief en pas op te lossen zodra `actions/checkout` een versie uitbrengt die
+  `using: node24` declareert.

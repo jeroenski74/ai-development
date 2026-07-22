@@ -21,6 +21,7 @@ jobs:
       pull-requests: write
       issues: write
       id-token: write
+      actions: write   # <-- toevoegen, lost de cache-waarschuwing op
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,6 +38,7 @@ jobs:
       pull-requests: write
       issues: write
       id-token: write
+      actions: write   # <-- toevoegen, lost de cache-waarschuwing op
     steps:
       - uses: actions/checkout@v4
         with:
